@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hiragana-Tabelle</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    table {
+      margin: 0 auto;
+      border-collapse: collapse;
+    }
+
+    td, th {
+      border: 1px solid #aaa;
+      padding: 1rem;
+      font-size: 1.5rem;
+      min-width: 60px;
+      position: relative;
+    }
+
+    .romaji {
+      display: none;
+      font-size: 0.8rem;
+      color: #444;
+      position: absolute;
+      bottom: 4px;
+      right: 6px;
+    }
+
+    .show-romaji .romaji {
+      display: block;
+    }
+
+    button {
+      margin-bottom: 1rem;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Hiragana-Tabelle</h1>
+  <button onclick="toggleRomaji()">Laute anzeigen/ausblenden</button>
+
+  <table id="hiraganaTable">
+    <tbody>
+      <!-- Zeilen: a, ka, sa, ta, na, ha, ma, ya, ra, wa, n -->
+      <tr>
+        <td>あ<div class="romaji">a</div></td>
+        <td>い<div class="romaji">i</div></td>
+        <td>う<div class="romaji">u</div></td>
+        <td>え<div class="romaji">e</div></td>
+        <td>お<div class="romaji">o</div></td>
+      </tr>
+      <tr>
+        <td>か<div class="romaji">ka</div></td>
+        <td>き<div class="romaji">ki</div></td>
+        <td>く<div class="romaji">ku</div></td>
+        <td>け<div class="romaji">ke</div></td>
+        <td>こ<div class="romaji">ko</div></td>
+      </tr>
+      <tr>
+        <td>さ<div class="romaji">sa</div></td>
+        <td>し<div class="romaji">shi</div></td>
+        <td>す<div class="romaji">su</div></td>
+        <td>せ<div class="romaji">se</div></td>
+        <td>そ<div class="romaji">so</div></td>
+      </tr>
+      <tr>
+        <td>た<div class="romaji">ta</div></td>
+        <td>ち<div class="romaji">chi</div></td>
+        <td>つ<div class="romaji">tsu</div></td>
+        <td>て<div class="romaji">te</div></td>
+        <td>と<div class="romaji">to</div></td>
+      </tr>
+      <tr>
+        <td>な<div class="romaji">na</div></td>
+        <td>に<div class="romaji">ni</div></td>
+        <td>ぬ<div class="romaji">nu</div></td>
+        <td>ね<div class="romaji">ne</div></td>
+        <td>の<div class="romaji">no</div></td>
+      </tr>
+      <tr>
+        <td>は<div class="romaji">ha</div></td>
+        <td>ひ<div class="romaji">hi</div></td>
+        <td>ふ<div class="romaji">fu</div></td>
+        <td>へ<div class="romaji">he</div></td>
+        <td>ほ<div class="romaji">ho</div></td>
+      </tr>
+      <tr>
+        <td>ま<div class="romaji">ma</div></td>
+        <td>み<div class="romaji">mi</div></td>
+        <td>む<div class="romaji">mu</div></td>
+        <td>め<div class="romaji">me</div></td>
+        <td>も<div class="romaji">mo</div></td>
+      </tr>
+      <tr>
+        <td>や<div class="romaji">ya</div></td>
+        <td></td>
+        <td>ゆ<div class="romaji">yu</div></td>
+        <td></td>
+        <td>よ<div class="romaji">yo</div></td>
+      </tr>
+      <tr>
+        <td>ら<div class="romaji">ra</div></td>
+        <td>り<div class="romaji">ri</div></td>
+        <td>る<div class="romaji">ru</div></td>
+        <td>れ<div class="romaji">re</div></td>
+        <td>ろ<div class="romaji">ro</div></td>
+      </tr>
+      <tr>
+        <td>わ<div class="romaji">wa</div></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td>を<div class="romaji">wo</div></td>
+      </tr>
+      <tr>
+        <td>ん<div class="romaji">n</div></td>
+        <td colspan="4"></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <script>
+    function toggleRomaji() {
+      const table = document.getElementById('hiraganaTable');
+      table.classList.toggle('show-romaji');
+    }
+  </script>
+
+</body>
+</html>
