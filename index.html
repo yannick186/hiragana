@@ -40,7 +40,7 @@
     }
 
     button {
-      margin-bottom: 1rem;
+      margin: 0.5rem;
       padding: 0.5rem 1rem;
       font-size: 1rem;
     }
@@ -55,6 +55,7 @@
 
   <h1>Hiragana-Tabelle</h1>
   <button onclick="toggleRomaji()">Laute anzeigen/ausblenden</button>
+  <button onclick="resetLearned()">Lernfortschritt zurücksetzen</button>
 
   <table id="hiraganaTable">
     <tbody>
@@ -72,7 +73,66 @@
         <td data-char="け">け<div class="romaji">ke</div></td>
         <td data-char="こ">こ<div class="romaji">ko</div></td>
       </tr>
-      <!-- ... weitere Zeilen wie gehabt ... -->
+      <tr>
+        <td data-char="さ">さ<div class="romaji">sa</div></td>
+        <td data-char="し">し<div class="romaji">shi</div></td>
+        <td data-char="す">す<div class="romaji">su</div></td>
+        <td data-char="せ">せ<div class="romaji">se</div></td>
+        <td data-char="そ">そ<div class="romaji">so</div></td>
+      </tr>
+      <tr>
+        <td data-char="た">た<div class="romaji">ta</div></td>
+        <td data-char="ち">ち<div class="romaji">chi</div></td>
+        <td data-char="つ">つ<div class="romaji">tsu</div></td>
+        <td data-char="て">て<div class="romaji">te</div></td>
+        <td data-char="と">と<div class="romaji">to</div></td>
+      </tr>
+      <tr>
+        <td data-char="な">な<div class="romaji">na</div></td>
+        <td data-char="に">に<div class="romaji">ni</div></td>
+        <td data-char="ぬ">ぬ<div class="romaji">nu</div></td>
+        <td data-char="ね">ね<div class="romaji">ne</div></td>
+        <td data-char="の">の<div class="romaji">no</div></td>
+      </tr>
+      <tr>
+        <td data-char="は">は<div class="romaji">ha</div></td>
+        <td data-char="ひ">ひ<div class="romaji">hi</div></td>
+        <td data-char="ふ">ふ<div class="romaji">fu</div></td>
+        <td data-char="へ">へ<div class="romaji">he</div></td>
+        <td data-char="ほ">ほ<div class="romaji">ho</div></td>
+      </tr>
+      <tr>
+        <td data-char="ま">ま<div class="romaji">ma</div></td>
+        <td data-char="み">み<div class="romaji">mi</div></td>
+        <td data-char="む">む<div class="romaji">mu</div></td>
+        <td data-char="め">め<div class="romaji">me</div></td>
+        <td data-char="も">も<div class="romaji">mo</div></td>
+      </tr>
+      <tr>
+        <td data-char="や">や<div class="romaji">ya</div></td>
+        <td></td>
+        <td data-char="ゆ">ゆ<div class="romaji">yu</div></td>
+        <td></td>
+        <td data-char="よ">よ<div class="romaji">yo</div></td>
+      </tr>
+      <tr>
+        <td data-char="ら">ら<div class="romaji">ra</div></td>
+        <td data-char="り">り<div class="romaji">ri</div></td>
+        <td data-char="る">る<div class="romaji">ru</div></td>
+        <td data-char="れ">れ<div class="romaji">re</div></td>
+        <td data-char="ろ">ろ<div class="romaji">ro</div></td>
+      </tr>
+      <tr>
+        <td data-char="わ">わ<div class="romaji">wa</div></td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td data-char="を">を<div class="romaji">wo</div></td>
+      </tr>
+      <tr>
+        <td data-char="ん">ん<div class="romaji">n</div></td>
+        <td colspan="4"></td>
+      </tr>
     </tbody>
   </table>
 
@@ -101,6 +161,13 @@
         }
       });
       localStorage.setItem(STORAGE_KEY, JSON.stringify(learned));
+    }
+
+    function resetLearned() {
+      localStorage.removeItem(STORAGE_KEY);
+      document.querySelectorAll('#hiraganaTable td.learned').forEach(cell => {
+        cell.classList.remove('learned');
+      });
     }
 
     function initTable() {
