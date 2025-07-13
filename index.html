@@ -56,9 +56,10 @@
   <h1>Hiragana-Tabelle</h1>
   <button onclick="toggleRomaji()">Laute anzeigen/ausblenden</button>
   <button onclick="resetLearned()">Lernfortschritt zurücksetzen</button>
+  <button onclick="toggleShuffle()">Mischen / Sortieren</button>
 
   <table id="hiraganaTable">
-    <tbody>
+    <tbody id="hiraganaBody">
       <tr>
         <td data-char="あ">あ<div class="romaji">a</div></td>
         <td data-char="い">い<div class="romaji">i</div></td>
@@ -138,9 +139,19 @@
 
   <script>
     const STORAGE_KEY = 'learnedHiragana';
+    const tableBody = document.getElementById('hiraganaBody');
+    let originalRows = [];
+    let shuffled = false;
 
     function toggleRomaji() {
       document.getElementById('hiraganaTable').classList.toggle('show-romaji');
+    }
+
+    function resetLearned() {
+      localStorage.removeItem(STORAGE_KEY);
+      document.querySelectorAll('#hiraganaTable td.learned').forEach(cell => {
+        cell.classList.remove('learned');
+      });
     }
 
     function loadLearned() {
@@ -163,13 +174,6 @@
       localStorage.setItem(STORAGE_KEY, JSON.stringify(learned));
     }
 
-    function resetLearned() {
-      localStorage.removeItem(STORAGE_KEY);
-      document.querySelectorAll('#hiraganaTable td.learned').forEach(cell => {
-        cell.classList.remove('learned');
-      });
-    }
-
     function initTable() {
       document.querySelectorAll('#hiraganaTable td').forEach(cell => {
         cell.addEventListener('click', () => {
@@ -179,6 +183,33 @@
           saveLearned();
         });
       });
+    }
+
+    function toggleShuffle() {
+      if (!originalRows.length) {
+        // Beim ersten Klick: Original-Zeilen speichern
+        originalRows = Array.from(tableBody.rows).map(row => row.cloneNode(true));
+      }
+
+      if (shuffled) {
+        // Wiederherstellen
+        tableBody.innerHTML = '';
+        originalRows.forEach(row => tableBody.appendChild(row.cloneNode(true)));
+        shuffled = false;
+      } else {
+        // Mischen
+        const rows = Array.from(tableBody.rows);
+        for (let i = rows.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [rows[i], rows[j]] = [rows[j], rows[i]];
+        }
+        tableBody.innerHTML = '';
+        rows.forEach(row => tableBody.appendChild(row));
+        shuffled = true;
+      }
+
+      initTable();   // Events neu binden
+      loadLearned(); // Markierungen erhalten
     }
 
     // Initialisierung
