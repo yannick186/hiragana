@@ -2,163 +2,207 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hiragana-Tabelle</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kana-Trainer: Hiragana & Katakana</title>
   <style>
-    body {
-      font-family: sans-serif;
-      text-align: center;
-      padding: 2rem;
-    }
-
-    table {
-      margin: 0 auto;
-      border-collapse: collapse;
-    }
-
+    :root { --accent: #2563eb; --border:#aaa; }
+    body { font-family: system-ui, sans-serif; text-align:center; padding:2rem; }
+    .tabs { display:inline-flex; border:1px solid var(--border); border-radius:999px; overflow:hidden; margin-bottom:1rem; }
+    .tab { padding:.5rem 1rem; cursor:pointer; border-right:1px solid var(--border); user-select:none; background:#f7f7f7; }
+    .tab:last-child { border-right:none; }
+    .tab.active { background: white; color: #000; font-weight:600; box-shadow: inset 0 -2px 0 0 var(--accent); }
+    .controls { margin: .5rem 0 1rem; }
+    button { margin:.25rem; padding:.5rem 1rem; font-size:1rem; cursor:pointer; }
+    table { margin:0 auto; border-collapse:collapse; }
     td, th {
-      border: 1px solid #aaa;
-      padding: 1rem;
-      font-size: 1.5rem;
-      min-width: 60px;
-      position: relative;
-      cursor: pointer;
-      transition: background-color 0.3s, border 0.3s;
+      border:1px solid var(--border);
+      padding:1rem; font-size:1.6rem; min-width:60px;
+      position:relative; cursor:pointer;
+      transition:background-color .25s, border .25s, transform .05s;
     }
-
+    td:active { transform: scale(.98); }
     .romaji {
-      display: none;
-      font-size: 0.8rem;
-      color: #444;
-      position: absolute;
-      bottom: 4px;
-      right: 6px;
+      display:none; font-size:.8rem; color:#444;
+      position:absolute; bottom:4px; right:6px;
     }
-
-    .show-romaji .romaji {
-      display: block;
-    }
-
-    button {
-      margin: 0.5rem;
-      padding: 0.5rem 1rem;
-      font-size: 1rem;
-    }
-
-    .learned {
-      background-color: #cce5ff;
-      border: 2px solid #3399ff;
-    }
+    .show-romaji .romaji { display:block; }
+    .learned { background-color:#cce5ff; border:2px solid #3399ff; }
+    .hint { font-size:.9rem; color:#555; margin-top:.5rem; }
   </style>
 </head>
 <body>
 
-  <h1>Hiragana-Tabelle</h1>
-  <button onclick="toggleRomaji()">Laute anzeigen/ausblenden</button>
-  <button onclick="resetLearned()">Lernfortschritt zurücksetzen</button>
-  <button onclick="toggleShuffle()">Mischen / Sortieren</button>
+  <h1>Kana-Trainer</h1>
 
-  <table id="hiraganaTable" class="">
-    <tbody id="hiraganaBody"></tbody>
-  </table>
+  <!-- Tabs = Umblättern -->
+  <div class="tabs" role="tablist" aria-label="Schriftarten">
+    <div class="tab active" id="tab-hiragana" role="tab" aria-selected="true" tabindex="0">Hiragana</div>
+    <div class="tab" id="tab-katakana" role="tab" aria-selected="false" tabindex="0">Katakana</div>
+  </div>
+
+  <!-- Controls -->
+  <div class="controls">
+    <button id="btnRomaji">Laute anzeigen/ausblenden</button>
+    <button id="btnShuffle">Mischen / Sortieren</button>
+    <button id="btnReset">Lernfortschritt zurücksetzen</button>
+  </div>
+
+  <!-- Tabelle -->
+  <table id="kanaTable"><tbody id="kanaBody"></tbody></table>
+  <div class="hint">Tipp: Klicke auf ein Feld, um es als gelernt zu markieren.</div>
 
   <script>
-    const STORAGE_KEY = 'learnedHiragana';
-    const tableBody = document.getElementById('hiraganaBody');
-    let originalCells = [];
-    let isShuffled = false;
-
-    const hiraganaData = [
-      ["あ", "a"], ["い", "i"], ["う", "u"], ["え", "e"], ["お", "o"],
-      ["か", "ka"], ["き", "ki"], ["く", "ku"], ["け", "ke"], ["こ", "ko"],
-      ["さ", "sa"], ["し", "shi"], ["す", "su"], ["せ", "se"], ["そ", "so"],
-      ["た", "ta"], ["ち", "chi"], ["つ", "tsu"], ["て", "te"], ["と", "to"],
-      ["な", "na"], ["に", "ni"], ["ぬ", "nu"], ["ね", "ne"], ["の", "no"],
-      ["は", "ha"], ["ひ", "hi"], ["ふ", "fu"], ["へ", "he"], ["ほ", "ho"],
-      ["ま", "ma"], ["み", "mi"], ["む", "mu"], ["め", "me"], ["も", "mo"],
-      ["や", "ya"], ["", ""], ["ゆ", "yu"], ["", ""], ["よ", "yo"],
-      ["ら", "ra"], ["り", "ri"], ["る", "ru"], ["れ", "re"], ["ろ", "ro"],
-      ["わ", "wa"], ["", ""], ["", ""], ["", ""], ["を", "wo"],
-      ["ん", "n"]
+    // --- Daten ---
+    // 5-Spalten-Layout (gojūon) mit Leerslots für YA/WA-Reihe
+    const HIRAGANA = [
+      ["あ","a"],["い","i"],["う","u"],["え","e"],["お","o"],
+      ["か","ka"],["き","ki"],["く","ku"],["け","ke"],["こ","ko"],
+      ["さ","sa"],["し","shi"],["す","su"],["せ","se"],["そ","so"],
+      ["た","ta"],["ち","chi"],["つ","tsu"],["て","te"],["と","to"],
+      ["な","na"],["に","ni"],["ぬ","nu"],["ね","ne"],["の","no"],
+      ["は","ha"],["ひ","hi"],["ふ","fu"],["へ","he"],["ほ","ho"],
+      ["ま","ma"],["み","mi"],["む","mu"],["め","me"],["も","mo"],
+      ["や","ya"],["",""],["ゆ","yu"],["",""],["よ","yo"],
+      ["ら","ra"],["り","ri"],["る","ru"],["れ","re"],["ろ","ro"],
+      ["わ","wa"],["",""],["",""],["",""],["を","wo"],
+      ["ん","n"]
+    ];
+    const KATAKANA = [
+      ["ア","a"],["イ","i"],["ウ","u"],["エ","e"],["オ","o"],
+      ["カ","ka"],["キ","ki"],["ク","ku"],["ケ","ke"],["コ","ko"],
+      ["サ","sa"],["シ","shi"],["ス","su"],["セ","se"],["ソ","so"],
+      ["タ","ta"],["チ","chi"],["ツ","tsu"],["テ","te"],["ト","to"],
+      ["ナ","na"],["ニ","ni"],["ヌ","nu"],["ネ","ne"],["ノ","no"],
+      ["ハ","ha"],["ヒ","hi"],["フ","fu"],["ヘ","he"],["ホ","ho"],
+      ["マ","ma"],["ミ","mi"],["ム","mu"],["メ","me"],["モ","mo"],
+      ["ヤ","ya"],["",""],["ユ","yu"],["",""],["ヨ","yo"],
+      ["ラ","ra"],["リ","ri"],["ル","ru"],["レ","re"],["ロ","ro"],
+      ["ワ","wa"],["",""],["",""],["",""],["ヲ","wo"],
+      ["ン","n"]
     ];
 
-    function createTable(cells) {
-      tableBody.innerHTML = '';
+    // --- Zustand ---
+    const table = document.getElementById('kanaTable');
+    const tbody = document.getElementById('kanaBody');
+    const tabs = { hiragana: document.getElementById('tab-hiragana'),
+                   katakana: document.getElementById('tab-katakana') };
+
+    const STORAGE_KEYS = {
+      hiragana: 'learnedHiragana',
+      katakana: 'learnedKatakana'
+    };
+
+    const state = {
+      active: 'hiragana',                // 'hiragana' | 'katakana'
+      romajiVisible: false,
+      isShuffled: { hiragana: false, katakana: false },
+      original:   { hiragana: HIRAGANA, katakana: KATAKANA },
+    };
+
+    // Hilfsfunktionen LocalStorage
+    function loadLearned(script) {
+      const raw = localStorage.getItem(STORAGE_KEYS[script]);
+      try { return raw ? JSON.parse(raw) : []; } catch { return []; }
+    }
+    function saveLearned(script, chars) {
+      localStorage.setItem(STORAGE_KEYS[script], JSON.stringify(chars));
+    }
+
+    // Tabelle rendern (5 Spalten)
+    function createTable(script, cells) {
+      tbody.innerHTML = '';
       for (let i = 0; i < cells.length; i += 5) {
-        const row = document.createElement('tr');
+        const tr = document.createElement('tr');
         for (let j = 0; j < 5; j++) {
-          const index = i + j;
-          const [kana, romaji] = cells[index] || ["", ""];
-          const cell = document.createElement('td');
+          const [kana, romaji] = cells[i + j] || ["",""];
+          const td = document.createElement('td');
           if (kana) {
-            cell.dataset.char = kana;
-            cell.innerHTML = `${kana}<div class="romaji">${romaji}</div>`;
+            td.dataset.char = kana;
+            td.innerHTML = `${kana}<div class="romaji">${romaji}</div>`;
           }
-          row.appendChild(cell);
+          tr.appendChild(td);
         }
-        tableBody.appendChild(row);
+        tbody.appendChild(tr);
       }
-      initTable();
-      loadLearned();
+      if (state.romajiVisible) table.classList.add('show-romaji'); else table.classList.remove('show-romaji');
+      bindCellClicks();
+      applyLearned(script);
     }
 
-    function toggleRomaji() {
-      document.getElementById('hiraganaTable').classList.toggle('show-romaji');
-    }
-
-    function resetLearned() {
-      localStorage.removeItem(STORAGE_KEY);
-      document.querySelectorAll('#hiraganaTable td.learned').forEach(cell => {
-        cell.classList.remove('learned');
+    // Gelernt anwenden
+    function applyLearned(script) {
+      const learned = loadLearned(script);
+      document.querySelectorAll('#kanaTable td').forEach(td => {
+        const ch = td.dataset.char;
+        if (ch && learned.includes(ch)) td.classList.add('learned');
       });
     }
 
-    function loadLearned() {
-      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-      document.querySelectorAll('#hiraganaTable td').forEach(cell => {
-        const char = cell.dataset.char;
-        if (char && saved.includes(char)) {
-          cell.classList.add('learned');
-        }
-      });
-    }
-
-    function saveLearned() {
-      const learned = [];
-      document.querySelectorAll('#hiraganaTable td.learned').forEach(cell => {
-        if (cell.dataset.char) {
-          learned.push(cell.dataset.char);
-        }
-      });
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(learned));
-    }
-
-    function initTable() {
-      document.querySelectorAll('#hiraganaTable td').forEach(cell => {
-        cell.addEventListener('click', () => {
-          const char = cell.dataset.char;
-          if (!char) return;
-          cell.classList.toggle('learned');
-          saveLearned();
+    // Klick-Handler für Zellen
+    function bindCellClicks() {
+      document.querySelectorAll('#kanaTable td').forEach(td => {
+        td.addEventListener('click', () => {
+          const ch = td.dataset.char;
+          if (!ch) return;
+          td.classList.toggle('learned');
+          const script = state.active;
+          const learned = new Set(loadLearned(script));
+          td.classList.contains('learned') ? learned.add(ch) : learned.delete(ch);
+          saveLearned(script, [...learned]);
         });
       });
     }
 
+    // Mischen / Sortieren (einzelne Zellen)
     function toggleShuffle() {
-      if (!isShuffled) {
-        originalCells = [...hiraganaData];
-        const shuffled = [...originalCells].sort(() => Math.random() - 0.5);
-        createTable(shuffled);
-        isShuffled = true;
+      const script = state.active;
+      const source = state.original[script];
+
+      if (!state.isShuffled[script]) {
+        // Shuffle
+        const shuffled = [...source].sort(() => Math.random() - 0.5);
+        createTable(script, shuffled);
+        state.isShuffled[script] = true;
       } else {
-        createTable(originalCells);
-        isShuffled = false;
+        // Restore
+        createTable(script, source);
+        state.isShuffled[script] = false;
       }
     }
 
-    // Initialisierung
-    createTable(hiraganaData);
-  </script>
+    // UI-Aktionen
+    document.getElementById('btnRomaji').addEventListener('click', () => {
+      state.romajiVisible = !state.romajiVisible;
+      table.classList.toggle('show-romaji', state.romajiVisible);
+    });
 
+    document.getElementById('btnShuffle').addEventListener('click', toggleShuffle);
+
+    document.getElementById('btnReset').addEventListener('click', () => {
+      const script = state.active;
+      localStorage.removeItem(STORAGE_KEYS[script]);
+      document.querySelectorAll('#kanaTable td.learned').forEach(td => td.classList.remove('learned'));
+    });
+
+    // Tabs (Umblättern)
+    function setActiveTab(script) {
+      state.active = script;
+      tabs.hiragana.classList.toggle('active', script === 'hiragana');
+      tabs.katakana.classList.toggle('active', script === 'katakana');
+
+      // Beim Wechsel: Originalreihenfolge anzeigen (kein Auto-Reset von learned)
+      state.isShuffled[script] = false;
+      createTable(script, state.original[script]);
+    }
+
+    tabs.hiragana.addEventListener('click', () => setActiveTab('hiragana'));
+    tabs.katakana.addEventListener('click', () => setActiveTab('katakana'));
+    // Keyboard-Zugänglichkeit
+    tabs.hiragana.addEventListener('keydown', (e)=>{ if(e.key==='ArrowRight') setActiveTab('katakana'); });
+    tabs.katakana.addEventListener('keydown', (e)=>{ if(e.key==='ArrowLeft')  setActiveTab('hiragana'); });
+
+    // Init
+    setActiveTab('hiragana');
+  </script>
 </body>
 </html>
